@@ -19,8 +19,9 @@ arcpy.env.workspace = "C:/Users/jorgeromero/Documents/firstpythonscript/GISProje
 #Performe Geoprocessing 
 ## selectRiver it stores the selected river "Kansas River"
 
-
-selectRiver = arcpy.SelectLayerByAttribute_management('ks_major_rivers', 'NEW_SELECTION', "GNIS_NAME = 'Kansas River'")
-selectCounties = arcpy.SelectLayerByLocation_management('Tiger2010_Census_County', 'INTERSECT', selectRiver, "", 'NEW_SELECTION')
-arcpy.CopyFeatures_management(selectCounties, 'selectedCounties')
+selcRegion = arcpy.management.SelectLayerByAttribute('ks_ecoregions', 'NEW_SELECTION', "US_L3NAME = 'Flint Hills'")
+Buffer = arcpy.analysis.Buffer(selcRegion,'Buffer', '10 Kilometers')
+arcpy.analysis.Clip(selcRegion, Buffer,'clippedRivers')
 arcpy.management.CalculateGeometryAttributes('clippedRivers' , [['riverlenght', 'LENGTH']], 'MILES_US')
+arcpy.da.SearchCursor('fileStats', 'SUM_riverlenght') 
+
