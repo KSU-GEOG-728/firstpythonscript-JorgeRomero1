@@ -17,11 +17,23 @@ arcpy.env.overwriteOutput = True
 arcpy.env.workspace = "C:/Users/jorgeromero/Documents/firstpythonscript/GISProject/ExerciseData.gdb"
 
 #Performe Geoprocessing 
-## selectRiver it stores the selected river "Kansas River"
 
-selcRegion = arcpy.management.SelectLayerByAttribute('ks_ecoregions', 'NEW_SELECTION', "US_L3NAME = 'Flint Hills'")
-Buffer = arcpy.analysis.Buffer(selcRegion,'Buffer', '10 Kilometers')
-arcpy.analysis.Clip(selcRegion, Buffer,'clippedRivers')
-arcpy.management.CalculateGeometryAttributes('clippedRivers' , [['riverlenght', 'LENGTH']], 'MILES_US')
-arcpy.da.SearchCursor('fileStats', 'SUM_riverlenght') 
+## selectRegion contains FLint Hills region selected by attributes. 
+selcRegion = arcpy.SelectLayerByAttribute_management('ks_ecoregions', 'NEW_SELECTION', "US_L3NAME = 'Flint Hills'")
+## Buffer stores a buffer of 10 Km  from the selcRegion
+Buffer = arcpy.Buffer_analysis(selcRegion,'Buffer', '10 Kilometers')
+## clippedRivers it stores and clip all the rivers that are within the buffer
+clippedRivers = arcpy.Clip_analysis('ks_major_rivers', 'Buffer', 'clippedRivers')
+## Create a new column called "riverLength" that calculates the length of each river  in miles
+arcpy.CalculateGeometryAttributes_management('clippedRivers' , [['riverLength', 'LENGTH']], 'MILES_US')
+## Create an empty list to store the length of each river
+riversLength = []
+## Access to the attribute table of clippedRivers 
+rows = arcpy.SearchCursor(clippedRivers)
+## Iterate in each row of the attribute table to get the length of each river and append to the list 
+for row in rows:
+    length = row.getValue("riverLength")
+    riversLength.append(length)
+## Print the sum of the elements in the list riversLenght 
+print(f'The total length of the clipped rivers is {sum(riversLength):.2f} Miles')
 
